@@ -136,6 +136,26 @@ def _validate_all_links_live(runs_list):
     ]
     _DEAD_URL_PATS = ["/404", "?error=true", "job-not-found", "posting-not-found"]
 
+    def _check_greenhouse_api(url):
+        """Check Greenhouse job via their embed JSON API. Returns True if dead."""
+        import re as _re
+        gh_m = _re.search(r'greenhouse\.io/([^/]+)/jobs/(\d+)', url, _re.I)
+        if not gh_m:
+            return True  # company page / no job ID = dead
+        company = gh_m.group(1)
+        job_id = gh_m.group(2)
+        api = f"https://boards-api.greenhouse.io/v1/boards/{company}/jobs/{job_id}"
+        try:
+            req = urllib.request.Request(api, headers=_HEADERS)
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode())
+                return not data.get("id")  # no id = job gone
+        except urllib.error.HTTPError as e:
+            return e.code in (404, 410, 403, 422)
+        except Exception:
+            pass  # fall through to HTTP check
+        return False
+
     def _check(url):
         if "ashbyhq.com" in url:
             import re as _re
@@ -157,6 +177,10 @@ def _validate_all_links_live(runs_list):
             except urllib.error.HTTPError as e:
                 return e.code in (404, 410, 403, 422)
             except Exception:
+                return True
+        if "greenhouse.io" in url:
+            api_result = _check_greenhouse_api(url)
+            if api_result:
                 return True
         try:
             req = urllib.request.Request(url, headers=_HEADERS)

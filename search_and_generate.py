@@ -100,10 +100,33 @@ def _is_dead_ashby(url: str) -> bool:
     except Exception:
         return True  # API failure = assume dead (conservative)
 
+def _is_dead_greenhouse_api(url: str) -> bool:
+    """Check Greenhouse job via their embed JSON API. Returns True if dead."""
+    import urllib.request, urllib.error
+    gh_m = re.search(r'greenhouse\.io/([^/]+)/jobs/(\d+)', url, re.I)
+    if not gh_m:
+        return True  # company page / no job ID = dead
+    company = gh_m.group(1)
+    job_id = gh_m.group(2)
+    api_url = f"https://boards-api.greenhouse.io/v1/boards/{company}/jobs/{job_id}"
+    try:
+        req = urllib.request.Request(api_url, headers=_HEADERS)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+            return not data.get("id")  # no id = job gone
+    except urllib.error.HTTPError as e:
+        return e.code in (404, 410, 403, 422)
+    except Exception:
+        pass  # fall through to HTTP check
+    return False
+
 def _is_dead_url(url: str) -> bool:
     """Returns True if the job link is expired/not found."""
     if "ashbyhq.com" in url:
         return _is_dead_ashby(url)
+    if "greenhouse.io" in url:
+        if _is_dead_greenhouse_api(url):
+            return True
     import urllib.request, urllib.error
     try:
         req = urllib.request.Request(url, headers=_HEADERS)

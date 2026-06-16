@@ -47,6 +47,24 @@ def collect_urls():
 def is_broken(url):
     if "ashbyhq.com" in url and re.search(r'[a-f0-9]{8}-[a-f0-9]{4}', url, re.I):
         return True
+    if "greenhouse.io" in url:
+        gh_m = re.search(r'greenhouse\.io/([^/]+)/jobs/(\d+)', url, re.I)
+        if gh_m:
+            company, job_id = gh_m.group(1), gh_m.group(2)
+            api_url = f"https://boards-api.greenhouse.io/v1/boards/{company}/jobs/{job_id}"
+            try:
+                req = Request(api_url, headers=HEADERS)
+                resp = urlopen(req, timeout=10)
+                data = json.loads(resp.read().decode())
+                if not data.get("id"):
+                    return True
+            except HTTPError as e:
+                if e.code in (404, 410, 403, 422):
+                    return True
+            except Exception:
+                pass  # fall through to HTTP check
+        else:
+            return True  # company page without /jobs/ID = dead
     try:
         req = Request(url, headers=HEADERS)
         resp = urlopen(req, timeout=12)
