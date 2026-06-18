@@ -12,6 +12,7 @@ import json
 import re
 import urllib.request
 import urllib.error
+import urllib.parse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -78,23 +79,21 @@ def _is_dead_ashby(url: str) -> bool:
     comp_m = re.search(r"ashbyhq\.com/([^/]+)", url)
     if not comp_m:
         return True
-    api = (
-        f"https://jobs.ashbyhq.com/api/non-posting-external/job/"
-        f"{comp_m.group(1)}/{uuid_m.group(0)}"
-    )
+    company_raw = urllib.parse.unquote(comp_m.group(1))
+    company = urllib.parse.quote(company_raw, safe="")
+    job_id = uuid_m.group(0)
+    api = f"https://api.ashbyhq.com/posting-api/job-board/{company}?ashby_source=job_board&limit=500"
     try:
         req = urllib.request.Request(api, headers=HEADERS)
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode())
-            p = data.get("jobPosting") or data.get("job") or {}
-            if isinstance(p, dict):
-                return not p.get("isPublished", True)
-            return False
-    except urllib.error.HTTPError:
-        pass  # API 404 doesn't mean the job page is dead — fall through to HTTP check
+            jobs = data.get("jobs", [])
+            if not jobs:
+                return True  # company has no open positions
+            return not any(j.get("id") == job_id for j in jobs)
     except Exception:
         pass  # fall through to HTTP check
-    return _is_dead_http(url)
+    return False  # API failure = assume alive
 
 
 # ── Greenhouse API check ──────────────────────────────────────────────────────
