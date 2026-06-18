@@ -85,10 +85,11 @@ def _is_dead_ashby(url: str) -> bool:
             if isinstance(p, dict):
                 return not p.get("isPublished", True)
             return False
-    except urllib.error.HTTPError as e:
-        return e.code in (404, 410, 403, 422)
+    except urllib.error.HTTPError:
+        pass  # API 404 doesn't mean the job page is dead — fall through to HTTP check
     except Exception:
-        return True  # API failure = assume dead (conservative)
+        pass  # fall through to HTTP check
+    return _is_dead_http(url)
 
 
 # ── Greenhouse API check ──────────────────────────────────────────────────────
