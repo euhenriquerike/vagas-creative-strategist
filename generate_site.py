@@ -113,22 +113,35 @@ for r in uiux_runs:
     r["jobs"] = [j for j in r["jobs"] if not cache.is_broken(j.get("url", ""))]
     r["novas"] = len(r["jobs"])
 
-# ── Live re-validation: HTTP-check all remaining URLs ────────────────────────
+# ── Live re-validation: HTTP-check older URLs, trust latest run ────────────────
 def _validate_all_links_live(*runs_lists):
-    """HTTP-check every remaining URL across all run lists. Single pass."""
-    all_urls = set()
+    """HTTP-check URLs from older runs. Latest run is trusted (just validated by search_and_generate.py)."""
+    from datetime import date as _date
+    today_str = _date.today().isoformat()
+
+    trusted_urls = set()   # URLs from today's latest run — already validated
+    recheck_urls = set()   # Older URLs — need re-validation
+
     for runs_list in runs_lists:
         for r in runs_list:
             for j in r["jobs"]:
                 u = j.get("url", "")
-                if u:
-                    all_urls.add(u)
+                if not u:
+                    continue
+                if r.get("is_latest") and r.get("date") == today_str:
+                    trusted_urls.add(u)
+                else:
+                    recheck_urls.add(u)
 
-    if not all_urls:
+    # Remove already-known broken from recheck set
+    recheck_urls -= cache.broken
+
+    if not recheck_urls:
+        print(f"  Todos os links validos (latest trusted, 0 para re-checar)", flush=True)
         return
 
-    url_list = sorted(all_urls)
-    print(f"  Validando {len(url_list)} links via HTTP...", flush=True)
+    url_list = sorted(recheck_urls)
+    print(f"  Validando {len(url_list)} links antigos via HTTP (latest trusted)...", flush=True)
     results = check_urls_parallel(url_list)
     newly_dead = {u for u, dead in results.items() if dead}
 
@@ -142,7 +155,7 @@ def _validate_all_links_live(*runs_lists):
         cache.save()
         print(f"  {len(newly_dead)} links mortos removidos e salvos em broken_links.json", flush=True)
     else:
-        print(f"  Todos os {len(url_list)} links validos", flush=True)
+        print(f"  Todos os {len(url_list)} links antigos validos", flush=True)
 
 _validate_all_links_live(runs, uiux_runs)
 
