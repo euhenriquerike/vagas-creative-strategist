@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Pipeline autônomo: busca vagas PM via Tavily + extrai com Claude API (fallback: regex) + gera site.
+Pipeline autônomo: busca vagas Creative/Content Strategist via Tavily + extrai com Claude API (fallback: regex) + gera site.
 """
 import os, json, re, sys
 from datetime import date, datetime, timezone, timedelta
@@ -82,17 +82,23 @@ def filter_live_vagas(vagas: list[dict]) -> list[dict]:
 
 # ── Buscas ────────────────────────────────────────────────────────────────────
 SEARCHES = [
-    ("product manager remote LATAM Brazil",         ["jobs.lever.co"],                                   20),
-    ("product owner remote LATAM Brazil",           ["jobs.lever.co"],                                   10),
-    ("product manager remote LATAM Brazil",         ["jobs.ashbyhq.com"],                                20),
-    ("product owner remote LATAM Brazil",           ["jobs.ashbyhq.com"],                                10),
-    ("product manager remote LATAM Brazil",         ["boards.greenhouse.io","job-boards.greenhouse.io"], 20),
-    ("product owner remote LATAM Brazil",           ["boards.greenhouse.io","job-boards.greenhouse.io"], 10),
-    ("product manager remote LATAM",                ["jobs.smartrecruiters.com"],                        10),
-    ("product manager remote LATAM Brazil",         ["weworkremotely.com"],                              10),
-    ("product manager remote LATAM",                ["remotive.com","himalayas.app"],                    15),
-    ("product manager remote LATAM Brazil",         ["apply.workable.com"],                              10),
-    ("product manager remote worldwide OR global",  ["jobs.lever.co","jobs.ashbyhq.com","job-boards.greenhouse.io"], 20),
+    ("creative strategist remote LATAM Brazil",              ["jobs.lever.co"],                                   20),
+    ("content strategist remote LATAM Brazil",               ["jobs.lever.co"],                                   15),
+    ("creative strategist remote LATAM Brazil",              ["jobs.ashbyhq.com"],                                20),
+    ("content strategist remote LATAM Brazil",               ["jobs.ashbyhq.com"],                                15),
+    ("creative strategist remote LATAM Brazil",              ["boards.greenhouse.io","job-boards.greenhouse.io"], 20),
+    ("content strategist remote LATAM Brazil",               ["boards.greenhouse.io","job-boards.greenhouse.io"], 15),
+    ("creative strategist remote LATAM",                     ["jobs.smartrecruiters.com"],                        10),
+    ("content strategist remote LATAM",                      ["jobs.smartrecruiters.com"],                        10),
+    ("creative strategist remote LATAM Brazil",              ["weworkremotely.com"],                              10),
+    ("content strategist remote",                            ["weworkremotely.com"],                              10),
+    ("creative strategist remote LATAM",                     ["remotive.com","himalayas.app"],                    15),
+    ("content strategist remote LATAM",                      ["remotive.com","himalayas.app"],                    15),
+    ("social media strategist remote LATAM Brazil",          ["jobs.lever.co","jobs.ashbyhq.com"],                10),
+    ("brand strategist remote LATAM Brazil",                 ["jobs.lever.co","jobs.ashbyhq.com"],                10),
+    ("creative strategist remote worldwide OR global",       ["jobs.lever.co","jobs.ashbyhq.com","job-boards.greenhouse.io"], 20),
+    ("content strategist remote worldwide OR global",        ["jobs.lever.co","jobs.ashbyhq.com","job-boards.greenhouse.io"], 20),
+    ("creative strategist remote LATAM Brazil",              ["apply.workable.com"],                              10),
 ]
 
 def search_all() -> list[dict]:
@@ -130,7 +136,7 @@ def detect_ats(url: str) -> str:
 # ── Extração com Claude (opcional) ───────────────────────────────────────────
 EXTRACT_PROMPT = """Você vai receber resultados de busca de vagas de emprego (título + URL + snippet).
 
-Para CADA resultado, determine se é uma vaga de **Product Manager** remota que aceita candidatos do Brasil/LATAM.
+Para CADA resultado, determine se é uma vaga de **Creative Strategist ou Content Strategist** remota que aceita candidatos do Brasil/LATAM.
 
 Retorne um JSON array. Cada item deve ter:
 - "company": nome da empresa
@@ -139,7 +145,7 @@ Retorne um JSON array. Cada item deve ter:
 - "ats": plataforma ATS (Lever / Ashby / Greenhouse / SmartRecruiters / WWR / Remotive / Himalayas / Workable / Outro)
 - "latam_friendly": true se menciona LATAM, Brazil, remote-anywhere, ou não restringe a US/EU
 
-Inclua SOMENTE vagas de PM (Product Manager, Product Owner, Head of Product). Exclua engineering, design, marketing, etc.
+Inclua SOMENTE vagas de estratégia criativa ou de conteúdo: Creative Strategist, Content Strategist, Brand Strategist, Social Media Strategist, Head of Content, Content Director, Marketing Strategist. Exclua vagas de engineering, development, data science, finance, recruiting, product management, e design puro (UX/UI Designer, Graphic Designer).
 Se não houver vagas válidas, retorne [].
 
 Resultados de busca:
@@ -179,14 +185,16 @@ def extract_with_claude(raw_results: list[dict]) -> list[dict] | None:
         return None
 
 # ── Extração por regex (fallback) ─────────────────────────────────────────────
-PM_KEYWORDS = re.compile(
-    r'\bproduct\s+manager\b|\bproduct\s+owner\b|\bhead\s+of\s+product\b|'
-    r'\bsenior\s+pm\b|\bprincipal\s+pm\b|\bgroup\s+pm\b|\bstaff\s+pm\b',
+JOB_KEYWORDS = re.compile(
+    r'\bcreative\s+strategist\b|\bcontent\s+strategist\b|\bbrand\s+strategist\b|'
+    r'\bsocial\s+media\s+strategist\b|\bhead\s+of\s+content\b|\bcontent\s+director\b|'
+    r'\bmarketing\s+strategist\b|\bcreative\s+strategy\b|\bcontent\s+strategy\b',
     re.IGNORECASE
 )
 EXCLUDE_KEYWORDS = re.compile(
-    r'\bengineer\b|\bdeveloper\b|\bdesigner\b|\bmarketing\b|\bsales\b|'
-    r'\bdata\s+scientist\b|\banalyst\b|\baccountant\b|\brecruiter\b',
+    r'\bengineer\b|\bdeveloper\b|\bux\s+designer\b|\bui\s+designer\b|'
+    r'\bgraphic\s+designer\b|\bdata\s+scientist\b|\baccountant\b|\brecruiter\b|'
+    r'\bproduct\s+manager\b|\bsoftware\b',
     re.IGNORECASE
 )
 
@@ -196,7 +204,7 @@ def extract_company_from_title(title: str, url: str) -> str:
         if sep in title:
             parts = title.split(sep)
             for i, part in enumerate(parts):
-                if PM_KEYWORDS.search(part):
+                if JOB_KEYWORDS.search(part):
                     other = parts[1-i] if len(parts) == 2 else parts[-1]
                     return other.strip()
     domain = re.search(r'(?:jobs\.|boards\.|job-boards\.)([^./]+)', url)
@@ -213,7 +221,7 @@ def extract_with_regex(raw_results: list[dict]) -> list[dict]:
         content = r.get("content", "")
         full_text = f"{title} {content}"
 
-        if not PM_KEYWORDS.search(full_text):
+        if not JOB_KEYWORDS.search(full_text):
             continue
         if EXCLUDE_KEYWORDS.search(title):
             continue
@@ -230,7 +238,7 @@ def extract_with_regex(raw_results: list[dict]) -> list[dict]:
             if sep in title:
                 parts = title.split(sep)
                 for part in parts:
-                    if PM_KEYWORDS.search(part):
+                    if JOB_KEYWORDS.search(part):
                         role = part.strip()
                         break
                 break
@@ -288,7 +296,7 @@ def generate_markdown(vagas, prev_count) -> str:
     groups = group_by_ats(vagas)
 
     lines = [
-        f"# 🆕 Vagas PM Internacionais – {now}",
+        f"# 🆕 Vagas Creative & Content Strategist Internacionais – {now}",
         "",
         f"> **Execução automática** | Busca em ATS internacionais (Lever, Ashby, Greenhouse, SmartRecruiters, WWR, Remotive, Workable)",
         f"> **Histórico:** {prev_count} vagas anteriores ignoradas | **Novas encontradas:** {len(vagas)}",
@@ -419,12 +427,12 @@ def main():
         print("🔗 Validando links...", flush=True)
         new_vagas = filter_live_vagas(new_vagas)
 
-    base = VAGAS_DIR / f"vagas_pm_{TODAY}.md"
+    base = VAGAS_DIR / f"vagas_cs_{TODAY}.md"
     if base.exists():
         n = 2
-        while (VAGAS_DIR / f"vagas_pm_{TODAY}_exec{n}.md").exists():
+        while (VAGAS_DIR / f"vagas_cs_{TODAY}_exec{n}.md").exists():
             n += 1
-        out_path = VAGAS_DIR / f"vagas_pm_{TODAY}_exec{n}.md"
+        out_path = VAGAS_DIR / f"vagas_cs_{TODAY}_exec{n}.md"
     else:
         out_path = base
 

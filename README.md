@@ -1,8 +1,8 @@
-# Vagas PM Internacional
+# Vagas Creative Strategist Internacional
 
-🌐 **Acesse o site:** [https://cync.github.io/vagas-pm/](https://cync.github.io/vagas-pm/)
+🌐 **Acesse o site:** [https://euhenriquerike.github.io/vagas-creative-strategist/](https://euhenriquerike.github.io/vagas-creative-strategist/)
 
-Tracker de vagas internacionais para **Product Manager** — atualizado automaticamente 2× ao dia via GitHub Actions, sem depender do computador local.
+Tracker de vagas internacionais para **Creative Strategist e Content Strategist** — atualizado automaticamente 2× ao dia via GitHub Actions, sem depender do computador local.
 
 ---
 

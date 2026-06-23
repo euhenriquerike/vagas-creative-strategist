@@ -1,4 +1,4 @@
-name: Vagas PM - automatic search
+name: Vagas Creative Strategist - automatic search
 
 on:
   schedule:
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: vagas-pm-publish
+  group: vagas-cs-publish
   cancel-in-progress: false
 
 jobs:
@@ -52,6 +52,6 @@ jobs:
             echo "No generated changes to publish."
             exit 0
           fi
-          git commit -m "auto: vagas PM $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git commit -m "auto: vagas CS $(date -u +'%Y-%m-%d %H:%M UTC')"
           git pull --rebase origin main
           git push origin HEAD:main

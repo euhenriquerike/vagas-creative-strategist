@@ -30,7 +30,7 @@ def _infer_region(*parts):
         return "europe"
     return "global"
 
-def parse_md_file(filepath, prefix="vagas_pm"):
+def parse_md_file(filepath, prefix="vagas_cs"):
     text = filepath.read_text(encoding="utf-8", errors="replace")
     m = re.search(rf'{prefix}_(\d{{4}}-\d{{2}}-\d{{2}})', filepath.name)
     if not m:
@@ -80,7 +80,7 @@ def parse_md_file(filepath, prefix="vagas_pm"):
                              "region": current_region or _infer_region(co, role)})
     return {"date": date_str, "exec": exec_n, "file": filepath.name, "novas": novas, "jobs": jobs}
 
-runs = [r for f in _collect_files("vagas_pm_*.md") if (r := parse_md_file(f, "vagas_pm"))]
+runs = [r for f in _collect_files("vagas_cs_*.md") if (r := parse_md_file(f, "vagas_cs"))]
 if runs: runs[-1]["is_latest"] = True
 
 uiux_runs = [r for f in _collect_files("vagas_uiux_*.md") if (r := parse_md_file(f, "vagas_uiux"))]
@@ -205,15 +205,15 @@ html = f"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jobs Internacional · Felipe Saraiva</title>
-<meta name="description" content="Vagas remotas de Product Manager e UI/UX para LATAM, Brasil e internacional. Atualizado diariamente.">
-<meta property="og:title" content="Jobs Internacional · Felipe Saraiva">
-<meta property="og:description" content="Vagas remotas de PM e UI/UX para LATAM, Brasil e internacional. Atualizado diariamente.">
+<title>Creative Strategist Jobs Internacional</title>
+<meta name="description" content="Vagas remotas de Creative Strategist e Content Strategist para LATAM, Brasil e internacional. Atualizado diariamente.">
+<meta property="og:title" content="Creative Strategist Jobs Internacional">
+<meta property="og:description" content="Vagas remotas de Creative e Content Strategist para LATAM, Brasil e internacional. Atualizado diariamente.">
 <meta property="og:url" content="https://cync.github.io/vagas-pm/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Jobs Internacional">
-<meta name="twitter:description" content="Vagas remotas curadas por Felipe Saraiva.">
+<meta name="twitter:title" content="Creative Strategist Jobs Internacional">
+<meta name="twitter:description" content="Vagas remotas de Creative e Content Strategist para LATAM e internacional.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:ital,wght@0,400;0,450;0,500;0,700;1,450&display=swap" rel="stylesheet">
@@ -438,7 +438,7 @@ async function toggleSubscribe() {{
 <header>
   <div class="header-brand">
     <div class="brand-copy">
-      <h1 id="page-title">PM Jobs Internacional</h1>
+      <h1 id="page-title">Creative Strategist Jobs Internacional</h1>
       <p>curated by <a href="https://felipesaraiva.com" style="color:var(--arc-org);text-decoration:none" target="_blank">Felipe Saraiva</a> · atualizado diariamente</p>
       <a class="linkedin-brand" href="https://www.linkedin.com/in/felipesaraiva/" target="_blank" rel="noopener">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
@@ -494,12 +494,12 @@ async function toggleSubscribe() {{
     </div>
     <div class="footer-col">
       <div class="footer-col-header">Sobre</div>
-      <a href="#">Busca automatizada diaria por vagas remotas de PM e UI/UX para LATAM e internacional. Curado por Felipe Saraiva.</a>
+      <a href="#">Busca automatizada diaria por vagas remotas de Creative e Content Strategist para LATAM e internacional.</a>
     </div>
   </div>
   <div class="footer-bottom">
     <span>&#169; {datetime.now().year} Felipe Saraiva · Atualizado em {now_str}</span>
-    <span class="updated-badge">&#x2726; {total_jobs} PM · {total_uiux} UI/UX · {total_runs} execucoes</span>
+    <span class="updated-badge">&#x2726; {total_jobs} vagas · {total_runs} execucoes</span>
   </div>
 </footer>
 
@@ -683,7 +683,7 @@ function switchTab(tab) {{
   currentTab = tab;
   document.getElementById('tab-pm').classList.toggle('active', tab==='pm');
   document.getElementById('tab-uiux').classList.toggle('active', tab==='uiux');
-  document.getElementById('page-title').textContent = tab==='pm' ? 'PM Jobs Internacional' : 'UI/UX Jobs Internacional';
+  document.getElementById('page-title').textContent = 'Creative Strategist Jobs Internacional';
   document.getElementById('region-bar').style.display = tab==='pm' ? 'flex' : 'none';
   const totals = tab==='pm' ? (currentRegion==='latam' ? LATAM_TOTALS : EUROPE_TOTALS) : UIUX_TOTALS;
   document.getElementById('today-count').textContent = totals.today;
