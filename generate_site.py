@@ -704,4 +704,3 @@ applyFilter();
 
 (SITE_DIR / "index.html").write_text(html, encoding="utf-8")
 print("OK site gerado: PM=%d LATAM=%d EU=%d UIUX=%d" % (len(all_jobs), len(latam_jobs), len(europe_jobs), len(uiux_jobs)), flush=True)
-                                                                                                                                                    
