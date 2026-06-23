@@ -84,21 +84,30 @@ def filter_live_vagas(vagas: list[dict]) -> list[dict]:
 SEARCHES = [
     ("creative strategist remote LATAM Brazil",              ["jobs.lever.co"],                                   20),
     ("content strategist remote LATAM Brazil",               ["jobs.lever.co"],                                   15),
+    ("creative lead remote LATAM Brazil",                    ["jobs.lever.co"],                                   15),
+    ("social media strategist remote LATAM Brazil",          ["jobs.lever.co"],                                   10),
     ("creative strategist remote LATAM Brazil",              ["jobs.ashbyhq.com"],                                20),
     ("content strategist remote LATAM Brazil",               ["jobs.ashbyhq.com"],                                15),
+    ("creative lead remote LATAM Brazil",                    ["jobs.ashbyhq.com"],                                15),
+    ("social media strategist remote LATAM Brazil",          ["jobs.ashbyhq.com"],                                10),
     ("creative strategist remote LATAM Brazil",              ["boards.greenhouse.io","job-boards.greenhouse.io"], 20),
     ("content strategist remote LATAM Brazil",               ["boards.greenhouse.io","job-boards.greenhouse.io"], 15),
+    ("creative lead remote LATAM Brazil",                    ["boards.greenhouse.io","job-boards.greenhouse.io"], 10),
     ("creative strategist remote LATAM",                     ["jobs.smartrecruiters.com"],                        10),
     ("content strategist remote LATAM",                      ["jobs.smartrecruiters.com"],                        10),
+    ("creative lead remote LATAM",                           ["jobs.smartrecruiters.com"],                        10),
     ("creative strategist remote LATAM Brazil",              ["weworkremotely.com"],                              10),
     ("content strategist remote",                            ["weworkremotely.com"],                              10),
     ("creative strategist remote LATAM",                     ["remotive.com","himalayas.app"],                    15),
     ("content strategist remote LATAM",                      ["remotive.com","himalayas.app"],                    15),
-    ("social media strategist remote LATAM Brazil",          ["jobs.lever.co","jobs.ashbyhq.com"],                10),
+    ("creative lead remote LATAM",                           ["remotive.com","himalayas.app"],                    10),
     ("brand strategist remote LATAM Brazil",                 ["jobs.lever.co","jobs.ashbyhq.com"],                10),
+    ("head of content remote LATAM Brazil",                  ["jobs.lever.co","jobs.ashbyhq.com"],                10),
     ("creative strategist remote worldwide OR global",       ["jobs.lever.co","jobs.ashbyhq.com","job-boards.greenhouse.io"], 20),
     ("content strategist remote worldwide OR global",        ["jobs.lever.co","jobs.ashbyhq.com","job-boards.greenhouse.io"], 20),
+    ("creative lead remote worldwide OR global",             ["jobs.lever.co","jobs.ashbyhq.com","job-boards.greenhouse.io"], 15),
     ("creative strategist remote LATAM Brazil",              ["apply.workable.com"],                              10),
+    ("content strategist remote LATAM Brazil",               ["apply.workable.com"],                              10),
 ]
 
 def search_all() -> list[dict]:
@@ -145,7 +154,7 @@ Retorne um JSON array. Cada item deve ter:
 - "ats": plataforma ATS (Lever / Ashby / Greenhouse / SmartRecruiters / WWR / Remotive / Himalayas / Workable / Outro)
 - "latam_friendly": true se menciona LATAM, Brazil, remote-anywhere, ou não restringe a US/EU
 
-Inclua SOMENTE vagas de estratégia criativa ou de conteúdo: Creative Strategist, Content Strategist, Brand Strategist, Social Media Strategist, Head of Content, Content Director, Marketing Strategist. Exclua vagas de engineering, development, data science, finance, recruiting, product management, e design puro (UX/UI Designer, Graphic Designer).
+Inclua SOMENTE vagas de estratégia criativa ou de conteúdo: Creative Strategist, Content Strategist, Brand Strategist, Social Media Strategist, Head of Content, Content Director, Marketing Strategist, Creative Lead, Head of Creative, Creative Director. Exclua vagas de engineering, development, data science, finance, recruiting, product management, e design puro (UX/UI Designer, Graphic Designer).
 Se não houver vagas válidas, retorne [].
 
 Resultados de busca:
@@ -188,7 +197,8 @@ def extract_with_claude(raw_results: list[dict]) -> list[dict] | None:
 JOB_KEYWORDS = re.compile(
     r'\bcreative\s+strategist\b|\bcontent\s+strategist\b|\bbrand\s+strategist\b|'
     r'\bsocial\s+media\s+strategist\b|\bhead\s+of\s+content\b|\bcontent\s+director\b|'
-    r'\bmarketing\s+strategist\b|\bcreative\s+strategy\b|\bcontent\s+strategy\b',
+    r'\bmarketing\s+strategist\b|\bcreative\s+strategy\b|\bcontent\s+strategy\b|'
+    r'\bcreative\s+lead\b|\bhead\s+of\s+creative\b|\bcreative\s+director\b',
     re.IGNORECASE
 )
 EXCLUDE_KEYWORDS = re.compile(
